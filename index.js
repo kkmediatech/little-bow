@@ -14,6 +14,18 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 app.use(bodyParser.json());
 app.use(cors()); // ✅ เปิดให้ client สามารถเรียก API ได้
 
+(async () => {
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [{ role: "user", content: "Hello" }],
+    });
+    console.log("✅ OpenAI Response:", response.choices[0].message.content);
+  } catch (error) {
+    console.error("❌ OpenAI Error:", error);
+  }
+})();
+
 // ✅ API สำหรับ chat-ui
 app.post("/api/chat", async (req, res) => {
   const { message } = req.body;
