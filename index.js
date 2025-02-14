@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
+const cors = require("cors"); // ✅ รองรับการเรียก API จาก chat-ui
 const axios = require("axios");
 const { OpenAI } = require("openai");
 
@@ -11,6 +12,24 @@ const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 app.use(bodyParser.json());
+app.use(cors()); // ✅ เปิดให้ client สามารถเรียก API ได้
+
+// ✅ API สำหรับ chat-ui
+app.post("/api/chat", async (req, res) => {
+  const { message } = req.body;
+  if (!message) return res.status(400).json({ error: "Message is required" });
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [{ role: "user", content: message }],
+    });
+    res.json({ reply: response.choices[0].message.content });
+  } catch (error) {
+    console.error("OpenAI Error:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 
 // ✅ ตั้งค่า Webhook สำหรับ Facebook
 app.get("/webhook", (req, res) => {
